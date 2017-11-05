@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>title</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/notosansjapanese.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="/assets/css/materialize.css" media="screen,projection">
+	<style>
+		h1 {
+			font-size: 1.6rem;
+		}
+		h2 {
+			font-size: 1.3rem;
+		}
+	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="none">
+</head>
+<body>
+<header>
+	<div class="navbar-fixed">
+		<nav>
+			<div class="nav-wrapper teal">
+				<a href="/chat" class="brand-logo">Chat</a>
+			</div>
+		</nav>
+	</div>
+</header>
+<main>
+	<div class="container">
+		<h1 class="teal-text">WebSocketはいいぞ</h1>
+		<div class="row">
+			<div class="col s12 input-field">
+				<input type="text" id="msg_input">
+				<label for="msg_input">Message</label>
+			</div>
+			<div class="col s12">
+				<button onclick="publishMessage();" class="btn waves-effect waves-light">投稿</button>
+				<a class="waves-effect waves-light btn grey modal-trigger" href="#optionModal">設定</a>
+				<div id="optionModal" class="modal">
+					<div class="modal-content">
+						<h2 class="teal-text">設定</h2>
+						<div class="row">
+							<div class="col s12 input-field">
+								<input type="text" id="name_input">
+								<label for="name_input">Name</label>
+							</div>
+							<div class="col s12">
+								<button onclick="changeName();" class="btn waves-effect waves-light">変更</button>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<a href="#!" class="modal-action modal-close waves-effect waves-grey btn-flat">Close</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<ul class="collection" id="msg"></ul>
+	</div>
+</main>
+<footer class="page-footer blue-grey" id="footer" style="top: 0px;">
+	<div class="container">
+		<div class="row">
+			<div class="col l6 s12">
+				<h5 class="white-text">Chat</h5>
+				<p class="grey-text text-lighten-4">Test of Node.js and WebSocket</p>
+			</div>
+		</div>
+	</div>
+	<div class="footer-copyright">
+		<div class="container">
+			© 2017 Arthur
+		</div>
+	</div>
+</footer>
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="/assets/js/materialize.js"></script>
+<script src="/assets/js/footerFixed.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+$(function(){
+	$('#optionModal').modal();
+});
+</script>
+<script>
+	var socketio = io.connect('https://q.jizinet.work');
+	socketio.on('connected', function(name) {});
+	socketio.on('publish', function(data) {
+		addMessage(data.value);
+	});
+	socketio.on('disconnect', function() {});
+	function start(name) {
+		socketio.emit('connected', name);
+	}
+	function publishMessage() {
+		var textInput = document.getElementById('msg_input');
+		var msg = '[' + myName + ']' + textInput.value;
+		socketio.emit('publish', {value: msg});
+		textInput.value = '';
+	}
+	function addMessage (msg) {
+		var domMeg = document.createElement('li');
+		domMeg.className = 'collection-item';
+		domMeg.innerHTML = new Date().toLocaleTimeString() + ' ' + msg;
+		msgArea.appendChild(domMeg);
+	}
+	function changeName() {
+		var nameInput = document.getElementById('name_input');
+		socketio.emit('changeName', nameInput.value);
+		myName = nameInput.value;
+	}
+	var msgArea = document.getElementById('msg');
+	var myName = '@nuko' + Math.floor(Math.random()*500);
+	addMessage('あなたは' + myName + 'として入室しました');
+	$('#name_input').val([myName]);
+	start(myName);
+</script>
+</body>
+</html>
